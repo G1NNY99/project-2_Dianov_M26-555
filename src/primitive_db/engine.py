@@ -6,6 +6,7 @@ import prompt
 from prettytable import PrettyTable
 
 from primitive_db.core import create_table, delete, drop_table, insert, select, update
+from primitive_db.decorators import create_cacher
 from primitive_db.parser import parse_condition, parse_values
 from primitive_db.utils import (
     load_metadata,
@@ -68,6 +69,7 @@ def print_rows(metadata, table_name, rows):
 def run():
     """Запускает цикл интерактивных команд базы данных."""
     print_help()
+    select_cache = create_cacher()
 
     while True:
         metadata = load_metadata(METADATA_FILE)
@@ -94,6 +96,7 @@ def run():
 
                 if rows is not None:
                     save_table_data(table_name, rows)
+                    select_cache = create_cacher()
 
             elif command == "select":
                 table_name, where_text = parse_command(
@@ -110,7 +113,19 @@ def run():
                 if clause is not None:
                     check_clause(metadata, table_name, clause)
 
-                rows = select(load_table_data(table_name), clause)
+                cache_key = (
+                    table_name,
+                    tuple(sorted(clause.items())) if clause is not None else None,
+                )
+
+                rows = select_cache(
+                    cache_key,
+                    lambda: select(load_table_data(table_name), clause),
+                )
+
+                if rows is None:
+                    continue
+
                 print_rows(metadata, table_name, rows)
 
             elif command == "update":
@@ -135,12 +150,20 @@ def run():
                 rows = load_table_data(table_name)
                 matched = select(rows, where_clause)
 
+                if matched is None:
+                    continue
+
                 if not matched:
                     print("Записи по условию не найдены.")
                     continue
 
-                update(rows, set_clause, where_clause)
-                save_table_data(table_name, rows)
+                result = update(rows, set_clause, where_clause)
+
+                if result is None:
+                    continue
+
+                save_table_data(table_name, result)
+                select_cache = create_cacher()
 
                 for record in matched:
                     print(
@@ -164,12 +187,20 @@ def run():
                 rows = load_table_data(table_name)
                 matched = select(rows, where_clause)
 
+                if matched is None:
+                    continue
+
                 if not matched:
                     print("Записи по условию не найдены.")
                     continue
 
-                delete(rows, where_clause)
-                save_table_data(table_name, rows)
+                result = delete(rows, where_clause)
+
+                if result is None:
+                    continue
+
+                save_table_data(table_name, result)
+                select_cache = create_cacher()
 
                 for record in matched:
                     print(
@@ -228,6 +259,7 @@ def run():
 
                     if metadata != before:
                         save_metadata(METADATA_FILE, metadata)
+                        select_cache = create_cacher()
 
                 elif command == "drop_table":
                     if len(parameters) != 1:
@@ -239,6 +271,7 @@ def run():
 
                     if metadata != before:
                         save_metadata(METADATA_FILE, metadata)
+                        select_cache = create_cacher()
 
                 else:
                     print(f"Функции {command} нет. Попробуйте снова.")
