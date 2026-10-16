@@ -1,3 +1,5 @@
+from primitive_db.utils import delete_table_data, load_table_data
+
 VALID_TYPES = {"int", "str", "bool"}
 
 
@@ -41,13 +43,111 @@ def create_table(metadata, table_name, columns):
 
 
 def drop_table(metadata, table_name):
-
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
         return metadata
 
+    delete_table_data(table_name)
     del metadata[table_name]
 
     print(f'Таблица "{table_name}" успешно удалена.')
 
     return metadata
+
+
+def insert(metadata, table_name, values):
+    """Добавляет запись в таблицу с автоматическим присвоением ID."""
+    if table_name not in metadata:
+        print(f'Ошибка: Таблица "{table_name}" не существует.')
+        return None
+
+    columns = metadata[table_name][1:]
+
+    if len(values) != len(columns):
+        print(
+            f"Ошибка: Ожидалось {len(columns)} значений, "
+            f"получено {len(values)}."
+        )
+        return None
+
+    type_mapping = {
+        "int": int,
+        "str": str,
+        "bool": bool,
+    }
+
+    new_record = {}
+
+    for column, value in zip(columns, values):
+        column_name, column_type = column.split(":")
+        expected_type = type_mapping[column_type]
+
+        if type(value) is not expected_type:
+            print(
+                f'Ошибка: Неверный тип значения столбца "{column_name}". '
+                f"Ожидался тип {column_type}."
+            )
+            return None
+
+        new_record[column_name] = value
+
+    table_data = load_table_data(table_name)
+
+    new_id = max(
+        (record["ID"] for record in table_data),
+        default=0,
+    ) + 1
+
+    new_record = {"ID": new_id, **new_record}
+    table_data.append(new_record)
+
+    print(
+        f'Запись с ID={new_id} успешно добавлена '
+        f'в таблицу "{table_name}".'
+    )
+
+    return table_data
+
+
+def select(table_data, where_clause=None):
+    """Возвращает все записи или записи, соответствующие условию."""
+    if where_clause is None:
+        return table_data
+
+    return [
+        record
+        for record in table_data
+        if all(
+            record.get(column) == value
+            for column, value in where_clause.items()
+        )
+    ]
+
+
+def update(table_data, set_clause, where_clause):
+    """Обновляет записи, соответствующие заданному условию."""
+    for record in table_data:
+        if all(
+            record.get(column) == value
+            for column, value in where_clause.items()
+        ):
+            record.update(set_clause)
+
+    return table_data
+
+
+def delete(table_data, where_clause):
+    """Удаляет записи, соответствующие условию."""
+    if not where_clause:
+        return table_data
+
+    table_data[:] = [
+        record
+        for record in table_data
+        if not all(
+            record.get(column) == value
+            for column, value in where_clause.items()
+        )
+    ]
+
+    return table_data
