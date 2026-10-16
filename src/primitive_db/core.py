@@ -1,8 +1,11 @@
+
+from primitive_db.decorators import confirm_action, handle_db_errors, log_time
 from primitive_db.utils import delete_table_data, load_table_data
 
 VALID_TYPES = {"int", "str", "bool"}
 
 
+@handle_db_errors
 def create_table(metadata, table_name, columns):
     if table_name in metadata:
         print(f'Ошибка: Таблица "{table_name}" уже существует.')
@@ -42,6 +45,8 @@ def create_table(metadata, table_name, columns):
     return metadata
 
 
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata, table_name):
     if table_name not in metadata:
         print(f'Ошибка: Таблица "{table_name}" не существует.')
@@ -55,6 +60,8 @@ def drop_table(metadata, table_name):
     return metadata
 
 
+@handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
     """Добавляет запись в таблицу с автоматическим присвоением ID."""
     if table_name not in metadata:
@@ -109,6 +116,8 @@ def insert(metadata, table_name, values):
     return table_data
 
 
+@handle_db_errors
+@log_time
 def select(table_data, where_clause=None):
     """Возвращает все записи или записи, соответствующие условию."""
     if where_clause is None:
@@ -124,6 +133,7 @@ def select(table_data, where_clause=None):
     ]
 
 
+@handle_db_errors
 def update(table_data, set_clause, where_clause):
     """Обновляет записи, соответствующие заданному условию."""
     for record in table_data:
@@ -136,6 +146,8 @@ def update(table_data, set_clause, where_clause):
     return table_data
 
 
+@handle_db_errors
+@confirm_action("удаление записей")
 def delete(table_data, where_clause):
     """Удаляет записи, соответствующие условию."""
     if not where_clause:
