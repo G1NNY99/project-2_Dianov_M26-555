@@ -1,4 +1,3 @@
-
 import re
 import shlex
 
@@ -34,6 +33,18 @@ def print_help():
 
 
 def parse_command(pattern, text):
+    """Извлекает группы из команды по регулярному выражению.
+
+    Args:
+        pattern: Шаблон регулярного выражения для проверки команды.
+        text: Текст команды пользователя.
+
+    Returns:
+        Кортеж значений, извлечённых из групп регулярного выражения.
+
+    Raises:
+        ValueError: Если команда не соответствует шаблону.
+    """
     match = re.fullmatch(pattern, text, flags=re.IGNORECASE)
     if match is None:
         raise ValueError(f"Неверный формат команды: {text}")
@@ -41,6 +52,16 @@ def parse_command(pattern, text):
 
 
 def check_clause(metadata, table_name, clause):
+    """Проверяет существование столбцов и типы значений в условии.
+
+    Args:
+        metadata: Словарь схем существующих таблиц.
+        table_name: Имя таблицы для проверки схемы.
+        clause: Словарь условий в формате «столбец: значение».
+
+    Raises:
+        ValueError: Если столбец отсутствует или тип значения неверен.
+    """
     schema = dict(item.split(":", 1) for item in metadata[table_name])
 
     for column, value in clause.items():
@@ -48,12 +69,17 @@ def check_clause(metadata, table_name, clause):
             raise ValueError(f'Столбец "{column}" не существует.')
 
         if type(value).__name__ != schema[column]:
-            raise ValueError(
-                f'Столбец "{column}" ожидает тип {schema[column]}.'
-            )
+            raise ValueError(f'Столбец "{column}" ожидает тип {schema[column]}.')
 
 
 def print_rows(metadata, table_name, rows):
+    """Выводит записи таблицы с помощью PrettyTable.
+
+    Args:
+        metadata: Словарь схем существующих таблиц.
+        table_name: Имя таблицы для определения порядка столбцов.
+        rows: Записи, которые необходимо вывести.
+    """
     columns = [item.split(":", 1)[0] for item in metadata[table_name]]
 
     table = PrettyTable()
@@ -203,7 +229,7 @@ def run():
 
                 for record in matched:
                     print(
-                        f'Запись с ID={record["ID"]} успешно удалена '
+                        f"Запись с ID={record['ID']} успешно удалена "
                         f'из таблицы "{table_name}".'
                     )
 
@@ -218,11 +244,8 @@ def run():
                     continue
 
                 print(f"Таблица: {table_name}")
-                print(f'Столбцы: {", ".join(metadata[table_name])}')
-                print(
-                    f"Количество записей: "
-                    f"{len(load_table_data(table_name))}"
-                )
+                print(f"Столбцы: {', '.join(metadata[table_name])}")
+                print(f"Количество записей: {len(load_table_data(table_name))}")
 
             else:
                 args = shlex.split(user_input)

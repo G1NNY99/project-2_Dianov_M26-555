@@ -40,5 +40,10 @@ def save_table_data(table_name, data):
 
 
 def delete_table_data(table_name):
+    """Удаляет JSON-файл данных таблицы, если он существует.
+
+    Args:
+        table_name: Имя таблицы, файл данных которой нужно удалить.
+    """
     filepath = DATA_DIR / f"{table_name}.json"
     filepath.unlink(missing_ok=True)
