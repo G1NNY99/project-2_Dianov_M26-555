@@ -1,8 +1,7 @@
 
+from primitive_db.constants import TYPE_MAPPING, VALID_TYPES
 from primitive_db.decorators import confirm_action, handle_db_errors, log_time
 from primitive_db.utils import delete_table_data, load_table_data
-
-VALID_TYPES = {"int", "str", "bool"}
 
 
 @handle_db_errors
@@ -77,17 +76,11 @@ def insert(metadata, table_name, values):
         )
         return None
 
-    type_mapping = {
-        "int": int,
-        "str": str,
-        "bool": bool,
-    }
-
     new_record = {}
 
     for column, value in zip(columns, values):
         column_name, column_type = column.split(":")
-        expected_type = type_mapping[column_type]
+        expected_type = TYPE_MAPPING[column_type]
 
         if type(value) is not expected_type:
             print(

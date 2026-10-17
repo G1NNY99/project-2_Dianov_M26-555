@@ -1,5 +1,6 @@
 import json
-from pathlib import Path
+
+from primitive_db.constants import DATA_DIR
 
 
 def load_metadata(filepath):
@@ -19,7 +20,7 @@ def save_metadata(filepath, data):
 
 def load_table_data(table_name):
     """Загружает записи таблицы из JSON-файла."""
-    filepath = Path("data") / f"{table_name}.json"
+    filepath = DATA_DIR / f"{table_name}.json"
 
     try:
         with filepath.open("r", encoding="utf-8") as file:
@@ -30,15 +31,14 @@ def load_table_data(table_name):
 
 def save_table_data(table_name, data):
     """Сохраняет записи таблицы в JSON-файл."""
-    data_dir = Path("data")
-    data_dir.mkdir(exist_ok=True)
+    DATA_DIR.mkdir(exist_ok=True)
 
-    filepath = data_dir / f"{table_name}.json"
+    filepath = DATA_DIR / f"{table_name}.json"
 
     with filepath.open("w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
 
 def delete_table_data(table_name):
-    filepath = Path("data") / f"{table_name}.json"
+    filepath = DATA_DIR / f"{table_name}.json"
     filepath.unlink(missing_ok=True)
