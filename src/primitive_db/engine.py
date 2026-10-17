@@ -5,6 +5,7 @@ import shlex
 import prompt
 from prettytable import PrettyTable
 
+from primitive_db.constants import META_FILE
 from primitive_db.core import create_table, delete, drop_table, insert, select, update
 from primitive_db.decorators import create_cacher
 from primitive_db.parser import parse_condition, parse_values
@@ -14,8 +15,6 @@ from primitive_db.utils import (
     save_metadata,
     save_table_data,
 )
-
-METADATA_FILE = "db_meta.json"
 
 
 def print_help():
@@ -72,7 +71,7 @@ def run():
     select_cache = create_cacher()
 
     while True:
-        metadata = load_metadata(METADATA_FILE)
+        metadata = load_metadata(META_FILE)
         user_input = prompt.string(">>>Введите команду: ").strip()
 
         if not user_input:
@@ -258,7 +257,7 @@ def run():
                     )
 
                     if metadata != before:
-                        save_metadata(METADATA_FILE, metadata)
+                        save_metadata(META_FILE, metadata)
                         select_cache = create_cacher()
 
                 elif command == "drop_table":
@@ -270,7 +269,7 @@ def run():
                     drop_table(metadata, parameters[0])
 
                     if metadata != before:
-                        save_metadata(METADATA_FILE, metadata)
+                        save_metadata(META_FILE, metadata)
                         select_cache = create_cacher()
 
                 else:

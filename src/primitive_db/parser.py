@@ -1,5 +1,7 @@
 import ast
 
+from primitive_db.constants import VALID_VALUE_TYPES
+
 
 def parse_condition(text):
     """Преобразует условие вида age = 28 в словарь."""
@@ -19,14 +21,10 @@ def parse_condition(text):
         try:
             value = ast.literal_eval(raw_value)
         except (ValueError, SyntaxError):
-            raise ValueError(
-                f"Некорректное значение: {raw_value}."
-            ) from None
+            raise ValueError(f"Некорректное значение: {raw_value}.") from None
 
-    if type(value) not in (int, str, bool):
-        raise ValueError(
-            "Поддерживаются только типы int, str и bool."
-        )
+    if type(value) not in VALID_VALUE_TYPES:
+        raise ValueError("Поддерживаются только типы int, str и bool.")
 
     return {column: value}
 
@@ -34,9 +32,7 @@ def parse_condition(text):
 def parse_values(text):
     """Преобразует список значений INSERT в список Python."""
     if not (text.startswith("(") and text.endswith(")")):
-        raise ValueError(
-            "Значения должны быть заключены в круглые скобки."
-        )
+        raise ValueError("Значения должны быть заключены в круглые скобки.")
 
     try:
         node = ast.parse(f"[{text[1:-1]}]", mode="eval").body
@@ -57,10 +53,8 @@ def parse_values(text):
             except (ValueError, SyntaxError, TypeError):
                 raise ValueError("Некорректное значение.") from None
 
-        if type(value) not in (int, str, bool):
-            raise ValueError(
-                "Поддерживаются только типы int, str и bool."
-            )
+        if type(value) not in VALID_VALUE_TYPES:
+            raise ValueError("Поддерживаются только типы int, str и bool.")
 
         values.append(value)
 
