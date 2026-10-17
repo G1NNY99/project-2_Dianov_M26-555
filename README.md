@@ -319,6 +319,12 @@ CRUD — четыре базовые операции над данными: Cre
 
 [![Демонстрация декораторов и замыканий](https://asciinema.org/a/qdN0u9VL4apIznDf.svg)](https://asciinema.org/a/qdN0u9VL4apIznDf)
 
+### Итоговая демонстрация полного цикла CRUD
+
+Создание таблицы, добавление и чтение записи, обновление данных, удаление записи и таблицы с подтверждением, проверка результата.
+
+[![Итоговая демонстрация Primitive DB](https://asciinema.org/a/Be1mWSeOKNxJ87iV.svg)](https://asciinema.org/a/Be1mWSeOKNxJ87iV)
+
 ## Структура проекта
 
 ```text
